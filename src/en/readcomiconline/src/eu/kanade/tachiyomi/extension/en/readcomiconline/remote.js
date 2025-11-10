@@ -1,4 +1,14 @@
 function getPages(htmlContent, useServer2) {
+    function log(message) {
+        try {
+            throw new Error(message);
+        } catch (e) {
+            // In QuickJS, this is a way to pass messages back to the calling code.
+        }
+    }
+
+    log("getPages called");
+
     function atob(input) {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
         let str = String(input).replace(/=+$/, '');
@@ -53,8 +63,10 @@ function getPages(htmlContent, useServer2) {
     }
 
     if (!imageScriptContent) {
+        log("imageScriptContent not found");
         return [];
     }
+    log("imageScriptContent found");
 
     const arrayNameMatch = imageScriptContent.match(/dTfnT\(\d+,\d+,\d+,\d+,\d+,(_[A-Za-z0-9]+)\s*,/);
     const imageArrayName = arrayNameMatch ? arrayNameMatch[1] : null;
@@ -62,19 +74,25 @@ function getPages(htmlContent, useServer2) {
     const decryptFuncName = decryptFuncMatch ? decryptFuncMatch[1] : null;
 
     if (!imageArrayName || !decryptFuncName) {
+        log("imageArrayName or decryptFuncName not found");
         return [];
     }
+    log("imageArrayName: " + imageArrayName);
+    log("decryptFuncName: " + decryptFuncName);
 
     let finalLinks = [];
     try {
         eval(imageScriptContent);
         const semiEncryptedLinks = eval(imageArrayName);
+        log("semiEncryptedLinks: " + JSON.stringify(semiEncryptedLinks));
         const decryptFunc = eval(decryptFuncName);
 
         finalLinks = semiEncryptedLinks.map(link => {
             return decryptFunc(5, link);
         });
+        log("finalLinks: " + JSON.stringify(finalLinks));
     } catch (e) {
+        log("Error during eval: " + e);
         return [];
     }
 
